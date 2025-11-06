@@ -1,0 +1,33 @@
+cat > .gitignore <<'EOF'
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDEs / macOS
+.vscode/
+.idea/
+.DS_Store
+
+# Data, models, archives (keep them out unless tracked with LFS)
+*.zip
+*.tar
+*.tar.gz
+*.pth
+*.pt
+*.ckpt
+
+# notebooks
+.ipynb_checkpoints/
+
+# logs / temporary
+*.log
+all_data.zip
+EOF
