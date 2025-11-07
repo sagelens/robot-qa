@@ -25,6 +25,27 @@ Prompt prefix: “segment cracks”
 
 - `NVIDIA RTX 4090 (25 GB VRAM)`
 
+### Running this project
+
+- git clone https://github.com/sagelens/robot-qa.git
+- cd robot-qa
+- bash setup_env.sh
+- bash setup_models.sh
+- Download Datasets and extract in robot-qa dir (manually)
+- https://drive.google.com/file/d/1anu_A8TNztIgszI54o3S5Hg-rWA8amXT/view?usp=drivesdk > robot-qa/drywall/
+- https://drive.google.com/file/d/1rcuOcHU6oyn5YiLql31U_foenHOUwKwM/view?usp=drivesdk > robot-qa/cracks/
+- https://drive.google.com/file/d/1X8LynmOEmwXCmeC6UBJ46ASs9R8JwQFB/view?usp=drivesdk > robot-qa/all_data/ (This is our OUT DIR and contains metrics and annotations (both GT and Predicted))
+
+- `conda activate vlm`
+- `python src/convert_cracks.py` (Converts cracks dataset to Paligemma annotations)
+- `python src/convert_drywall.py` (Converts drywall dataset to Paligemma annotations)
+- `python src/tune_paligemma.py`  (Fine tuning script)
+- `python src/infer_paligemma_all_ckpts.py` (Inference on all saved QLORA checkpoints)
+- `python src/infer_paligemma_best_ckpt.py` (Inference on best QLORA checkpoint (50th step))
+- `python src/save_predictions.py` (Save all TRAIN and VALID predictions, masks and bboxes)
+- `python src/collect_evals.py` (Evaluate DICE and IOU metrics for all predictions and run statistics)
+- `python src/save_visualizations.py` (Plots sample results (Original | GT Mask | Predicted Masks))
+
 ### Approach
 
 - Both datasets provide raw RGB images (640, 640) and detection bounding boxes.
