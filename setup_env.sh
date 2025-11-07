@@ -10,13 +10,17 @@ conda create -n vlm python=3.10 -y
 echo "Activating vlm..."
 eval "$(conda shell.bash hook)"
 conda activate vlm
+python -m pip install --upgrade pip
+
 
 # Step 4: Install TensorFlow with CUDA support
 echo "Installing TensorFlow (GPU-enabled)..."
-pip install "tensorflow[and-cuda]"
+python -m pip install "tensorflow[and-cuda]"
 
 # Step 5: Install PyTorch with matching CUDA version
 echo "Installing PyTorch (CUDA 12.1)..."
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+python -m pip install transformers peft bitsandbytes matplotlib protobuf scikit-learn segment-anything tqdm sentencepiece pillow jax jaxlib flax regex
 
 echo "Environment setup complete!"
