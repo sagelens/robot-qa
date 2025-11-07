@@ -21,6 +21,10 @@ Prompt prefix: “segment cracks”
 
 - `google/paligemma-3b-mix-224`
 
+### Training setup:
+
+- `NVIDIA RTX 4090 (25 GB VRAM)`
+
 ### Approach
 
 - Both datasets provide raw RGB images (640, 640) and detection bounding boxes.
@@ -35,6 +39,45 @@ These two token strings are then concatenated together, followed by the object's
 
 If there are multiple objects, each object's full string is joined by a " ; " separator to create the final, complete output string.
 
+- The token strings were saved as suffixes for downstream fine tuning of Paligemma. I also normalised prefix strings to follow either `segment cracks` or `segment drywall`.
+
+- All annotations were saved to `_annotations.{SPLIT}.jsonl`. For both TRAIN and VALID splits. Example annotation: 
+```text
+{"image": "409-dat_png_jpg.rf.2ee6f2973adaf6d0f45c6a435d765671.jpg", "prefix": "segment cracks", "suffix": "<loc0000><loc0360><loc1004><loc0440><seg041><seg041><seg064><seg103><seg004><seg068><seg060><seg038><seg019><seg041><seg057><seg022><seg099><seg049><seg019><seg074> crack"}
+```
+
+- After this I ran `src/tune_paligemma.py` to fine tune the base `google/paligemma-3b-mix-224` with below settings.
+
+LORA Config:
+```python
+lora_config = LoraConfig(
+        r=8,
+        lora_alpha=16,
+        lora_dropout=0.05,
+        bias="none",
+        task_type="CAUSAL_LM",
+        target_modules=["q_proj","k_proj","v_proj","o_proj","gate_proj","up_proj","down_proj"],
+    )
+```
+- Initial Learning rate: 5e-5
+- Save steps: 25 (saved LORA checkpoints after each 25 training steps)
+- Batch size: 2
+- Weight decay: 0.01
+- Warmup ratio: 0.03
+- Gradient accumulation: 8
+- Seed: 42
+
+I trained the model for 1 epoch initially, later I figured the model decoding performance being degraded as we overfit. I evaluated model performance (decoding token generation) on each of the saved checkpoints and found the best performance on 50th steps checkpoint. This was used to final predicted box, mask generation and IoU and Dice calculations.
+
+- The paligemma output strings were decoded into binary segmentation mask using `src/tok_to_mask`
+- The decoded text from PaliGemma contains <loc> (bounding box) and <seg> (16-token VQ-VAE code) tags for each object instance.
+- These <seg> tokens are fed into a pretrained VAE decoder (vae-oid.npz), which reconstructs a low-resolution 64×64 grayscale mask in [0, 1].
+- The mask is then resized and thresholded inside the corresponding <loc> bounding box to create a full-resolution binary mask over the input image.
+- All per-instance masks are aggregated (unioned) per label, yielding one or more binary segmentation maps aligned with the original image.
+
+I saved predicted masks and predicted suffix from Paligemma output to `predicted_masks/` and `_annotations.predicted{SPLIT}.jsonl` for both TRAIN and VALID splits.
+
+At last I used `src/collect_evals.py` and `src/metrics.py` to evaluate the metrics on both TRAIN and VALID splits for each prompts seperately.
 
 ### Results
 
@@ -77,3 +120,51 @@ Each image corresponds to either **crack** or **drywall** segmentation.
 ![Drywall Example 1](visuals/2000x1500_5_resized_jpg.rf.6423c25a172441fa1f66e4e927fe68a9_drywall_canvas.jpg)
 ![Drywall Example 2](visuals/IMG_8209_JPG_jpg.rf.8fbaa3c995fac30818b643910225b928_drywall_canvas.jpg)
 ![Drywall Example 3](visuals/IMG_8223_JPG_jpg.rf.121531b6267b5a04f871202c0dbc43c6_drywall_canvas.jpg)
+
+
+### Failure Notes & Improvement Directions
+
+#### Identified Issues
+
+The model demonstrates reasonable visual segmentation quality, but quantitative metrics (IoU and Dice scores) remain suboptimal due to several factors:
+
+**Data Quality Issues**
+- SAM pseudo-labeling produces inconsistent pixel-level annotations, even with correct bounding boxes
+- Noisy ground truth masks propagate errors during training and evaluation
+
+**Class Imbalance**
+- Significantly less drywall data compared to cracks dataset
+- Drywall mIoU (0.09) substantially lower than cracks mIoU (0.27)
+
+**Lighting Variability**
+- Drywall images exhibit inconsistent lighting conditions
+- Model struggles to generalize across different illumination scenarios
+
+#### Directions for Improvements
+
+**1. Pseudo-Label Quality**
+- Review and correct SAM-generated masks for a subset of images
+- Use multiple SAM prompts (points + boxes) for more accurate segmentation
+- Apply morphological operations to clean masks and define countors
+
+**2. Data Imbalance**
+- Apply data augmentation (brightness, contrast, color jittering) specifically for drywall samples
+- Use class-weighted loss during training to balance crack vs. drywall learning
+
+**3. Training Strategy**
+- Resume training from checkpoint-50 with lower learning rate (1e-5 to 2e-5)
+- Increase LoRA rank (r=16 or r=32) for better model capacity
+- Train for longer with early stopping based on validation metrics
+
+**4. Post-Processing Refinements**
+- Apply conditional random fields (CRF) to refine mask boundaries
+
+
+### Runtime metrics
+
+1. Train time: # TODO
+
+2. Inference time (per image): # TODO
+
+3. Model size: # TODO
+
