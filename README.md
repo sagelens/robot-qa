@@ -59,9 +59,6 @@ If there are multiple objects, each object's full string is joined by a " ; " se
 | P90                | 0.5632          | 0.5293          |
 | Cracks mIoU ± Std  | 0.2381 ± 0.2356 | 0.2745 ± 0.2600 |
 | Drywall mIoU ± Std | 0.0905 ± 0.1198 | 0.0916 ± 0.1011 |
-
-Here’s the same section formatted so each image appears **one after another vertically** — perfect for a clean scroll layout in your `README.md`:
-
 ---
 
 ### **Segmentation Visuals**
