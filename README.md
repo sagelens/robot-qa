@@ -183,9 +183,9 @@ The model demonstrates reasonable visual segmentation quality, but quantitative 
 
 ### Runtime metrics
 
-1. Train time: # TODO
+1. Train time: ≈ 10 minutes per epoch (374 train steps)
 
-2. Inference time (per image): # TODO
+2. Inference time (per image): ≈ 0.4294 seconds (Promot + Image -> Paligemma Decode + Segmentation MASK)
 
-3. Model size: # TODO
+3. Model size: 3B Params (Paligemma-mix-224) + with LORA Adapter, Size in VRAM: ~5.69 GBs
 
