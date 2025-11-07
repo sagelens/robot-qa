@@ -27,14 +27,14 @@ Prompt prefix: “segment cracks”
 
 ### Running this project
 
-- git clone https://github.com/sagelens/robot-qa.git
-- cd robot-qa
-- bash setup_env.sh
-- bash setup_models.sh
+- `git clone https://github.com/sagelens/robot-qa.git` (Clone repo)
+- `cd robot-qa` (change work dir to robot-qa)
+- `bash setup_env.sh` (setup conda envirionment (vlm))
+- `bash setup_models.sh` (download SAM, BigVision VAE and Paligemma-mix-224 checkpoints to work dir)
 - Download Datasets and extract in robot-qa dir (manually)
-- https://drive.google.com/file/d/1anu_A8TNztIgszI54o3S5Hg-rWA8amXT/view?usp=drivesdk > robot-qa/drywall/
-- https://drive.google.com/file/d/1rcuOcHU6oyn5YiLql31U_foenHOUwKwM/view?usp=drivesdk > robot-qa/cracks/
-- https://drive.google.com/file/d/1X8LynmOEmwXCmeC6UBJ46ASs9R8JwQFB/view?usp=drivesdk > robot-qa/all_data/ (This is our OUT DIR and contains metrics and annotations (both GT and Predicted))
+- `https://drive.google.com/file/d/1anu_A8TNztIgszI54o3S5Hg-rWA8amXT/view?usp=drivesdk` > robot-qa/drywall/
+- `https://drive.google.com/file/d/1rcuOcHU6oyn5YiLql31U_foenHOUwKwM/view?usp=drivesdk` > robot-qa/cracks/
+- `https://drive.google.com/file/d/1X8LynmOEmwXCmeC6UBJ46ASs9R8JwQFB/view?usp=drivesdk` > robot-qa/all_data/ (This is our OUT DIR and contains metrics and annotations (both GT and Predicted))
 
 - `conda activate vlm`
 - `python src/convert_cracks.py` (Converts cracks dataset to Paligemma annotations)
